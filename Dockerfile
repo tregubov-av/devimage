@@ -56,9 +56,8 @@ RUN cd /usr/src \
     && make install \
     && ldconfig \
     && rm -rf /usr/src/*
-# Change root home dir
-# USER ${DOCKER_USER}
-ENV HOME=${DOCKER_USER_HOME}
+# Change user image
+USER ${DOCKER_USER}
 WORKDIR ${DOCKER_USER_HOME}
 # Perlbrew user layer
 RUN curl -L https://install.perlbrew.pl | bash
@@ -92,10 +91,8 @@ RUN set -x \
    && cpanm Ubic::Service::Plack --force \
    && cpanm Ubic::Service::Starman \
    && ubic-admin setup --batch-mode \
-   && printenv | egrep -v '^LS_COLORS|^_|^$' > ${DOCKER_USER_HOME}/.enviroment.env \
-   && echo "* * * * * bash -c 'source ${DOCKER_USER_HOME}/perl5/perlbrew/etc/bashrc \
-   && source ${DOCKER_USER_HOME}/.enviroment.env \
-   && ${DOCKER_USER_HOME}/perl5/perlbrew/perls/perl-5.22.1/bin/ubic-watchdog ubic.watchdog' \ 
-   >>/var/log/ubic/watchdog.log 2>>/var/log/ubic/watchdog.err.log" > '/var/spool/cron/crontabs/root'
-
-CMD [ "/usr/sbin/cron", "-f" ]
+   && printenv | egrep -v '^LS_COLORS|^_|^$' > ${DOCKER_USER_HOME}/.system.env
+# ADD start script
+ADD ./entrypoint.sh ${DOCKER_USER_HOME}/entrypoint.sh
+# Container entrypoint
+CMD ${DOCKER_USER_HOME}/entrypoint.sh
